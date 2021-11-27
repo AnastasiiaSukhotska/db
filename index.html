@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			color: #002873;
+		}
+		body{
+			height: 100vh;
+			background-color: lightblue;
+		}
+
+		.container{
+			display: flex;	
+			
+			padding: 20px;
+			background-color: lightblue;
+		}
+		.container__note-list, .container__chosen-note, .container__form{
+			flex-grow: 1;
+			flex-basis: 33%;
+			height: 100vh;
+			flex-shrink: 1;
+			border: 1px solid #002873;
+			box-shadow: 1px 1px 2px #002873;
+			background-color: white;
+		}
+
+		.container__form{
+			display: flex;
+			flex-direction: column;
+			
+
+		}
+
+		#input__name, #input__content, .btn__add{
+			margin: 10px auto;
+			outline: none;
+			border: none;
+			box-shadow: 1px 1px 2px #002873;
+			border-radius: 10px;
+		}
+		label{
+			margin: 10px auto;
+			font-size: 20px;
+		}
+
+
+		#input__name{
+			height: 30px;
+			line-height: 30px;
+			width: 250px;
+			padding: 5px;
+		}
+
+		#input__content{
+			line-height: 30px;
+			width: 250px;
+			padding: 5px;
+			resize: none;
+		}
+
+		.note-list__element, .chosen-note__header, .chosen-note__content{
+			line-height: 30px;
+			font-size: 20px;
+			box-shadow: 1px 1px 2px #002873;
+			padding: 10px;
+
+		}
+
+		.btn__add{
+			width: 70px;
+			line-height: 30px;
+			height: 30px;
+			vertical-align: middle;
+			padding: 0;
+			margin: 10px auto;
+			background-color: lightblue;
+			
+
+		}
+
+		.chosen-note__header{
+			text-align: center;
+		}
+
+		.chosen-note__content{
+			min-height: 200px;
+		}
+
+		h2{
+			text-align: center;
+			line-height: 50px;
+			background-color: #002873;
+			color: lightblue;
+			box-shadow: 1px 1px 2px lightblue;
+
+		}
+		.active{
+			background-color: #002873;
+		}
+	</style>
+	<script>
+		let noteTitleList=document.querySelector('.container__note-list');
+		function showNotesTitles(){
+			let noteTitleList=document.querySelector('.container__note-list');
+			noteTitleList.innerHTML='';
+			fetch('/titles',{
+			method: 'get',
+			headers:{
+				'Content-Type': 'application/json',
+				'Accept':'application/json'
+			}
+		    }).then(r=>r.json()).then(rs=>rs.map((r,i)=>createNameElement(r,i))).then(rs=>rs.forEach(r=>append(r)))
+			noteTitleList.addEventListener('click', (e)=>{
+				if (!e.target.matches('.note-list__element')) return;
+				let chosenNoteContentValue=e.target.dataset.content;
+				let chosenNoteTitleValue=e.target.dataset.title;
+				showChosenNote(chosenNoteTitleValue, chosenNoteContentValue);
+				
+			})
+		}
+
+		function showChosenNote(t,c){
+			let chosenNote=document.querySelector('.container__chosen-note chosen-note');
+			let chosenNoteTitle=document.querySelector('.chosen-note__header');
+			let chosenNoteContent=document.querySelector('.chosen-note__content');
+			chosenNoteContent.innerHTML='';
+			chosenNoteTitle.innerHTML='';
+			chosenNoteContent.append(c);
+			chosenNoteTitle.append(t);
+			chosenNote.append(chosenNoteTitle);
+			chosenNote.append(chosenNoteContent);
+			return chosenNote;
+		}
+
+		function append(arg){
+			let noteTitleList=document.querySelector('.container__note-list');
+			noteTitleList.append(arg);
+
+		}
+		
+
+		class Note{
+			constructor(title, content){
+				this.title=title;
+				this.content=content;
+			}
+
+			addNote(note){
+				fetch('/add',{
+			method: 'post',
+			headers:{
+				'Content-Type': 'application/json',
+				'Accept':'application/json'
+			},
+			body:JSON.stringify({
+				title: note.title,
+				content: note.content
+			})
+			}).then(r=>r.json())
+		}
+	}
+
+		document.addEventListener('DOMContentLoaded', ()=>{
+			showNotesTitles();
+			let note;
+			let button=document.querySelector('.btn__add');
+			button.addEventListener('click',()=>{
+				let titleValue=document.querySelector('#input__name');
+				let contentValue=document.querySelector('#input__content');
+				note=new Note(
+					titleValue.value, contentValue.value);
+				if(note.title.trim()===''||note.content.trim()===''){
+				alert('Fill form');
+				return;
+				}
+				note.addNote(note);
+				titleValue.value='';
+				contentValue.value='';
+				showNotesTitles();
+
+
+				})
+			})
+		function createNameElement(note, i){
+			let noteElement=document.createElement('div');
+			noteElement.classList.add('note-list__element');
+			noteElement.dataset.title=note.title;
+			noteElement.dataset.content=note.content;
+			noteElement.append(note.title);
+			return noteElement;
+
+		}
+		
+	</script>
+</head>
+<body>
+	<div class="container">
+		<div class="container__note-list note-list">
+			<div class="note-list__element">jgbjhb</div>
+		</div>
+		<div class="container__chosen-note chosen-note">
+			<h2>Chosen note</h2>
+			<div class="chosen-note__header">njo</div>
+			<div class="chosen-note__content">bhbiuhbhygvtcvyftcyfcyrtcftrxdexdrx</div>
+		</div>
+		<div class="container__form">
+			<h2>Add new note</h2>
+			<label for="input__name">Title</label>
+			<input type="text" id="input__name">
+			<label for="input__content">Text</label>
+			<textarea name="" id="input__content" cols="30" rows="10"></textarea>
+			
+			<button class="btn__add">Add</button>
+		</div>
+	</div>
+</body>
+</html>
